@@ -27,6 +27,7 @@ more-itertools==10.6.0
 msgpack==1.1.0
 packaging==24.2
 pbs-installer==2025.3.17
+pillow==11.1.0
 pkginfo==1.12.1.2
 platformdirs==4.3.7
 poetry==2.1.1
