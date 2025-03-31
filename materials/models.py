@@ -1,3 +1,5 @@
+from tkinter.constants import CASCADE
+
 from django.db import models
 
 # Create your models here.
@@ -14,6 +16,8 @@ class Course(models.Model):
         verbose_name_plural = 'Курсы'
 
 class Lesson(models.Model):
+    course = models.ForeignKey(
+        Course, on_delete=models.CASCADE, verbose_name="курсы", related_name="lessons", null=True)
     name = models.CharField(max_length=40, verbose_name='Название')
     description = models.TextField(null=True, blank=True, verbose_name='Описание')
     picture = models.ImageField(blank=True, verbose_name='Превью')
