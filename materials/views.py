@@ -8,7 +8,7 @@ from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView,
 
 from materials.models import Course, Lesson, Subscription
 from materials.paginators import CustomPagination
-from materials.serializer import CourseSerializer, LessonSerializer
+from materials.serializer import CourseSerializer, LessonSerializer, SubscriptionSerializer
 from users.permissions import ItsModer, ItsOwner
 
 class SubscriptionView(APIView):
@@ -77,3 +77,22 @@ class LessonDestroyApiView(DestroyAPIView):
     queryset = Lesson.objects.all()
     serializer_class = LessonSerializer
     permission_classes = (ItsModer | ItsOwner, IsAuthenticated)
+
+
+class SubscriptionCreateApiView(CreateAPIView):
+    queryset = Subscription.objects.all()
+    serializer_class = SubscriptionSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, *args, **kwargs):
+        user = self.request.user
+        course_id = self.request.data.get('course')
+        course_item = get_object_or_404(Course, pk=course_id)
+        subs_item = Subscription.objects.filter(user=user, course=course_item)
+        if subs_item.exists():
+            subs_item.delete()
+            message = 'подписка удалена'
+        else:
+            Subscription.objects.create(user=user, course=course_item, sign_of_subscription=True)
+            message = 'подписка добавлена'
+        return Response({"message": message})

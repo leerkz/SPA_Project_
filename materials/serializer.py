@@ -1,8 +1,8 @@
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 
-from materials.models import Course, Lesson
-from materials.validators import youtube_only_validator
+from materials.models import Course, Lesson, Subscription
+from materials.validators import youtube_only_validator, LinkValidator
 from users.models import Payments
 
 
@@ -25,15 +25,17 @@ class LessonSerializer(ModelSerializer):
     class Meta:
         model = Lesson
         fields = '__all__'
+        validators = [LinkValidator(field='link')]
 
 
 class CourseDetailSerializers(ModelSerializer):
     many_lessons = serializers.SerializerMethodField()
     lessons = LessonSerializer(many=True)
+    subscription = serializers.SerializerMethodField()
 
     def get_subscription(self, course):
         user = self.context['request'].user
-        return Payments.objects.all().filter(user=user).filter(course=course).exists()
+        return Subscription.objects.all().filter(user=user).filter(course=course).exists()
 
     def get_many_lesson(self, course):
         return Lesson.objects.filter(course=course).count()
@@ -41,3 +43,8 @@ class CourseDetailSerializers(ModelSerializer):
     class Meta:
         model = Course
         fields = ('title', 'description', 'many_lessons', 'subscription')
+
+class SubscriptionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Subscription
+        fields = ("sign_of_subscription",)

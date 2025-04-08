@@ -1,7 +1,13 @@
-from django.core.exceptions import ValidationError
-from urllib.parse import urlparse
+from rest_framework.exceptions import ValidationError
 
-def youtube_only_validator(value):
-    parsed_url = urlparse(value)
-    if 'youtube.com' not in parsed_url.netloc:
-        raise ValidationError("Разрешены только ссылки на youtube.com")
+
+class LinkValidator:
+    def __init__(self, field):
+        self.filed = field
+
+    def __call__(self, value):
+        youtube_url = 'https://www.youtube.com/'
+        if value.get("link"):
+            if youtube_url not in value.get('link'):
+                raise ValidationError('Нужна ссылка только youtube.com')
+        return None

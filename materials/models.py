@@ -38,8 +38,8 @@ class Lesson(models.Model):
 class Subscription(models.Model):
     user = models.ForeignKey(AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name="Пользователь", blank=True,
                               null=True),
-    course = models.ForeignKey(Course, on_delete=models.CASCADE, verbose_name="Подписка на курс"),
-    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, verbose_name="Подписка на урок"),
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, verbose_name="Подписка на курс")
+    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, null=True, blank=True)
     sign_of_subscription = models.BooleanField(verbose_name="Признак подписки")
 
     def __str__(self):
