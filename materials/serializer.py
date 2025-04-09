@@ -2,7 +2,7 @@ from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 
 from materials.models import Course, Lesson, Subscription
-from materials.validators import youtube_only_validator, LinkValidator
+from materials.validators import LinkValidator
 from users.models import Payments
 
 
@@ -21,7 +21,6 @@ class CourseSerializer(ModelSerializer):
 
 
 class LessonSerializer(ModelSerializer):
-    link = serializers.URLField(validators=[youtube_only_validator])
     class Meta:
         model = Lesson
         fields = '__all__'

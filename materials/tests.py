@@ -10,8 +10,8 @@ class LessonTestCase(APITestCase):
 
     def setUp(self):
         self.user = User.objects.create(email='admin@sky.com')
-        self.course = Course.objects.create(title='Python course', description='Python course jun', owner=self.user)
-        self.lesson = Lesson.objects.create(title='Python lesson', description='Python course', course=self.course,
+        self.course = Course.objects.create(name='Python course', description='Python course jun', owner=self.user)
+        self.lesson = Lesson.objects.create(name='Python lesson', description='Python course', course=self.course,
                                             owner=self.user)
         self.client.force_authenticate(user=self.user)
 
@@ -23,7 +23,7 @@ class LessonTestCase(APITestCase):
     def test_lesson_update(self):
         url = reverse('materials:lessons_update', args=(self.lesson.pk,))
         data = {
-            'title': 'Python'
+            'name': 'Python'
         }
         response = self.client.patch(url, data)
         data = response.json()
@@ -31,7 +31,7 @@ class LessonTestCase(APITestCase):
             response.status_code, status.HTTP_200_OK
         )
         self.assertEqual(
-            data.get('title'), 'Python'
+            data.get('name'), 'Python'
         )
 
     def test_lesson_delete(self):
@@ -46,7 +46,7 @@ class LessonTestCase(APITestCase):
         )
 
     def test_lesson_list(self):
-        url = reverse('materials:lessons_list')
+        url = reverse('materials:lesson_list')
         response = self.client.get(url)
         data = response.json()
         result = {
@@ -56,8 +56,8 @@ class LessonTestCase(APITestCase):
             "results": [
                 {
                     "id": self.lesson.pk,
-                    "title": self.lesson.title,
-                    "image": None,
+                    "name": self.lesson.name,
+                    "picture": None,
                     "description": self.lesson.description,
                     "link": '',
                     "owner": self.user.pk,
@@ -74,8 +74,8 @@ class LessonTestCase(APITestCase):
 class SubscriptionTestCase(APITestCase):
     def setUp(self):
         self.user = User.objects.create(email='admin@sky.com')
-        self.course = Course.objects.create(title='Python course', description='Python course jun', owner=self.user)
-        self.lesson = Lesson.objects.create(title='Python lesson', description='Python course decorators',
+        self.course = Course.objects.create(name='Python course', description='Python course jun', owner=self.user)
+        self.lesson = Lesson.objects.create(name='Python lesson', description='Python course decorators',
                                             course=self.course, owner=self.user)
         self.client.force_authenticate(user=self.user)
 
