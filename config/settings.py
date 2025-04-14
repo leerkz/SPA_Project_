@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     'materials',
     'rest_framework_simplejwt',
     'drf_yasg',
+    'django_celery_beat',
 ]
 
 MIDDLEWARE = [
@@ -131,3 +132,16 @@ AUTH_USER_MODEL='users.User'
 
 STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY')
 
+# Redis
+REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
+REDIS_PORT = os.getenv("REDIS_PORT", "6379")
+
+CELERY_BROKER_URL = f'redis://{REDIS_HOST}:{REDIS_PORT}/0'
+CELERY_RESULT_BACKEND = f'redis://{REDIS_HOST}:{REDIS_PORT}/0'
+
+# Для celery-beat
+CELERY_TIMEZONE = 'Europe/Moscow'
+USE_TZ = True
+CELERY_ENABLE_UTC = False
+
+CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'

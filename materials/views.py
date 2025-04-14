@@ -1,4 +1,7 @@
+from datetime import timedelta
+
 from django.shortcuts import render
+from django.utils import timezone
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -37,6 +40,17 @@ class CourseViewSet(ModelViewSet):
     serializer_class = CourseSerializer
     pagination_class = CustomPagination
 
+    def perform_update(self, serializer, send_course_update_email=None):
+        instance = serializer.save()
+
+        # Проверка: обновлялся ли курс за последние 4 часа
+        if timezone.now() - instance.updated_at > timedelta(hours=4):
+            # Получаем подписчиков
+            subscribers = Subscription.objects.filter(course=instance)
+            emails = [sub.user.email for sub in subscribers if sub.user.email]
+
+            # Вызываем таску Celery
+            send_course_update_email.delay(instance.id, emails)
 
     def get_permissions(self):
         if self.action == 'create':
