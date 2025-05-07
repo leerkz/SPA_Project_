@@ -1,0 +1,102 @@
+version: '3.8'
+
+services:
+<<<<<<< HEAD:docker-compose.yml
+  web:
+    image: syrok32/lera:latest
+    command: sh -c "python manage.py collectstatic --noinput && gunicorn SPA_Project_.wsgi:application --bind 0.0.0.0:8000"
+=======
+  db:
+    image: postgres:14
+    restart: always
+    env_file:
+      - .env
+
+    ports:
+      - "5433:5432"
+>>>>>>> parent of 3bc8a61 (ci cd):docker-compose.yaml
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    restart: always
+    ports:
+      - "6379:6379"
+
+  web:
+    build: .
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py collectstatic --noinput &&
+             gunicorn config.wsgi:application --bind 0.0.0.0:8000"
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
+
+  celery:
+<<<<<<< HEAD:docker-compose.yml
+    image: syrok32/lera:latest
+    command: celery -A SPA_Project_ worker --loglevel=info
+    user: "1000:1000"
+    healthcheck:
+      test: [ "CMD", "celery", "-A", "SPA_Project_", "inspect", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+    links:
+      - redis
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+=======
+    build: .
+    command: celery -A config worker -l info
+    volumes:
+      - .:/app
+>>>>>>> parent of 3bc8a61 (ci cd):docker-compose.yaml
+    env_file:
+      - .env
+    depends_on:
+      - redis
+      - db
+      - web
+
+  celery-beat:
+<<<<<<< HEAD:docker-compose.yml
+    image: syrok32/lera:latest
+    command: celery -A SPA_Project_ beat --loglevel=info
+
+    depends_on:
+      celery:
+        condition: service_healthy
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+=======
+    build: .
+    command: celery -A config beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    volumes:
+      - .:/app
+>>>>>>> parent of 3bc8a61 (ci cd):docker-compose.yaml
+    env_file:
+      - .env
+    depends_on:
+      - redis
+      - db
+      - web
+
+volumes:
+  postgres_data:
