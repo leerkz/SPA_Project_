@@ -37,7 +37,9 @@ jobs:
       HOST: localhost
       PORT: 5432
       DEBUG: true
+      SECRET_KEY: sk_test_51R6C6QKGhL0esuUxZnb82UpUTGeKBATsukJi31EpehP43A8mGmAxkgCwiINTKIpseXQBNa4hp8HAP803J5mZXp0A001wrBsW9K
       CELERY_BROKER_URL: redis://localhost:6379/0
+
 
     steps:
       - name: Checkout code
