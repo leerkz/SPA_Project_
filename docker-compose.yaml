@@ -1,62 +1,110 @@
-version: '3.8'
-
 services:
-  db:
-    image: postgres:14
-    restart: always
+  web:
+    image: syrok32/myapp:latest
+    command: sh -c "python manage.py collectstatic --noinput && gunicorn SPA_Project_.wsgi:application --bind 0.0.0.0:8000"
+    volumes:
+      - static_volume:/code/staticfiles
+    expose:
+      - "8000"
+    depends_on:
+      - db
+      - redis
     env_file:
       - .env
+    networks:
+      - backend
 
+  nginx:
+    build:
+      context: ./nginx
     ports:
-      - "5433:5432"
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - static_volume:/code/staticfiles
+    depends_on:
+      - web
+    networks:
+      - backend
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   redis:
-    image: redis:7
-    restart: always
+    image: redis
     ports:
       - "6379:6379"
-
-  web:
-    build: .
-    command: >
-      sh -c "python manage.py migrate &&
-             python manage.py collectstatic --noinput &&
-             gunicorn config.wsgi:application --bind 0.0.0.0:8000"
+    command: redis-server --save 60 1 --loglevel warning
+    networks:
+      - backend
     volumes:
-      - .:/app
-    ports:
-      - "8000:8000"
-    env_file:
-      - .env
-    depends_on:
-      - db
-      - redis
+      - ./data/cache:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   celery:
-    build: .
-    command: celery -A config worker -l info
-    volumes:
-      - .:/app
+    image: syrok32/myapp:latest
+    command: celery -A SPA_Project_ worker --loglevel=info
+    user: "1000:1000"
+    healthcheck:
+      test: [ "CMD", "celery", "-A", "SPA_Project_", "inspect", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+    links:
+      - redis
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     env_file:
       - .env
-    depends_on:
-      - redis
-      - db
-      - web
+    networks:
+      - backend
 
   celery-beat:
-    build: .
-    command: celery -A config beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
-    volumes:
-      - .:/app
+    image: syrok32/myapp:latest
+    command: celery -A SPA_Project_ beat --loglevel=info
+
+    depends_on:
+      celery:
+        condition: service_healthy
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
     env_file:
       - .env
-    depends_on:
-      - redis
-      - db
-      - web
+    networks:
+      - backend
+
 
 volumes:
   postgres_data:
+  static_volume:
+  redis_data:
+
+networks:
+  backend:
+    driver: bridge
