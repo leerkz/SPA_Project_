@@ -1,6 +1,6 @@
 services:
   web:
-    image: syrok32/myapp:latest
+    image: syrok32/lera:latest
     command: sh -c "python manage.py collectstatic --noinput && gunicorn SPA_Project_.wsgi:application --bind 0.0.0.0:8000"
     volumes:
       - static_volume:/code/staticfiles
@@ -60,7 +60,7 @@ services:
       retries: 5
 
   celery:
-    image: syrok32/myapp:latest
+    image: syrok32/lera:latest
     command: celery -A SPA_Project_ worker --loglevel=info
     user: "1000:1000"
     healthcheck:
@@ -83,7 +83,7 @@ services:
       - backend
 
   celery-beat:
-    image: syrok32/myapp:latest
+    image: syrok32/lera:latest
     command: celery -A SPA_Project_ beat --loglevel=info
 
     depends_on:
