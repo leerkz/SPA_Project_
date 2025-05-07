@@ -4,8 +4,9 @@ name: Django CI
 on: [push, pull_request]
 
 jobs:
+
+
   test:
-    needs: lint
     runs-on: ubuntu-latest
 
     services:
